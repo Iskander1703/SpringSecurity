@@ -7,6 +7,8 @@ import iskander.tabaev.springsecuritybasic.filter.CustomAtFilter;
 import iskander.tabaev.springsecuritybasic.filter.CustomLoggingAuthenticationUserFilter;
 import iskander.tabaev.springsecuritybasic.filter.CustomLoggingFilter;
 import iskander.tabaev.springsecuritybasic.filter.RequestValidationBeforeFilter;
+import iskander.tabaev.springsecuritybasic.filter.jwt.JWTTokenGeneratorFilter;
+import iskander.tabaev.springsecuritybasic.filter.jwt.JWTTokenValidatorFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -90,14 +92,13 @@ public class ProjectSecurityConfig {
                         return config;
                     }
                 }))
-                .csrf((csrf) -> csrf.csrfTokenRequestHandler(requestHandler).ignoringRequestMatchers("/contact", "/register")
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                .csrf((csrf) -> csrf.disable())
                 //Фильтр для вставки csrf в header
-                .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
-                .addFilterBefore(new RequestValidationBeforeFilter(), BasicAuthenticationFilter.class)
                 .addFilterBefore(new CustomLoggingAuthenticationUserFilter(), BasicAuthenticationFilter.class)
                 .addFilterAt(new CustomAtFilter(), BasicAuthenticationFilter.class)
                 .addFilterAfter(new CustomLoggingFilter(), BasicAuthenticationFilter.class)
+                .addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class)
+                .addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/myAccount", "/myBalance").hasAuthority("UPDATE")
                         .requestMatchers("/myLoans", "/myCards", "/user").hasAuthority("WRITE")
