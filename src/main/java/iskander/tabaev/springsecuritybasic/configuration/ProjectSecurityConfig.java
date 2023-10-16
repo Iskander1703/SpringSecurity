@@ -21,6 +21,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -46,6 +47,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity(debug = true)
+@EnableMethodSecurity(prePostEnabled = true)
 public class ProjectSecurityConfig {
 
     @Bean
@@ -71,8 +73,9 @@ public class ProjectSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
+
         /**
-         * Конфигурация на уроки по JWT
+         * Конфигурация на уроки по Method Level Security
          */
 
         CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
@@ -101,11 +104,49 @@ public class ProjectSecurityConfig {
                 .addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/myAccount", "/myBalance").hasAuthority("UPDATE")
-                        .requestMatchers("/myLoans", "/myCards", "/user").hasAuthority("WRITE")
+                        .requestMatchers("/myCards", "/user").hasAuthority("WRITE")
+                        .requestMatchers("/myLoans").authenticated()
                         .requestMatchers("/notices", "/contact", "/register").permitAll())
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults());
         return http.build();
+
+
+        /**
+         * Конфигурация на уроки по JWT
+         */
+
+//        CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
+//        requestHandler.setCsrfRequestAttributeName("_csrf");
+//
+//        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                .cors(corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
+//                    @Override
+//                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+//                        CorsConfiguration config = new CorsConfiguration();
+//                        config.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
+//                        config.setAllowedMethods(Collections.singletonList("*"));
+//                        config.setAllowCredentials(true);
+//                        config.setAllowedHeaders(Collections.singletonList("*"));
+//                        config.setExposedHeaders(Arrays.asList("Authorization"));
+//                        config.setMaxAge(3600L);
+//                        return config;
+//                    }
+//                }))
+//                .csrf((csrf) -> csrf.disable())
+//                //Фильтр для вставки csrf в header
+//                .addFilterBefore(new CustomLoggingAuthenticationUserFilter(), BasicAuthenticationFilter.class)
+//                .addFilterAt(new CustomAtFilter(), BasicAuthenticationFilter.class)
+//                .addFilterAfter(new CustomLoggingFilter(), BasicAuthenticationFilter.class)
+//                .addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class)
+//                .addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
+//                .authorizeHttpRequests((requests) -> requests
+//                        .requestMatchers("/myAccount", "/myBalance").hasAuthority("UPDATE")
+//                        .requestMatchers("/myLoans", "/myCards", "/user").hasAuthority("WRITE")
+//                        .requestMatchers("/notices", "/contact", "/register").permitAll())
+//                .formLogin(Customizer.withDefaults())
+//                .httpBasic(Customizer.withDefaults());
+//        return http.build();
 
         /**
          * Конфигурация на уроки по Cors и CSRF

@@ -4,6 +4,11 @@ package iskander.tabaev.springsecuritybasic.controllers;
 import iskander.tabaev.springsecuritybasic.models.Contact;
 import iskander.tabaev.springsecuritybasic.repositories.ContactRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PostFilter;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.prepost.PreFilter;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,7 +23,9 @@ public class ContactController {
     private ContactRepository contactRepository;
 
     @PostMapping("/contact")
-    public Contact saveContactInquiryDetails(@RequestBody Contact contact) {
+    //@PreAuthorize("#contact.contactName.equals('Test')")
+    @PostAuthorize("#contact.contactName.equals('Test')")
+    public Contact saveContactInquiryDetails(@P("contact") @RequestBody Contact contact) {
         contact.setContactId(getServiceReqNumber());
         contact.setCreateDt(new Date(System.currentTimeMillis()));
         return contactRepository.save(contact);
